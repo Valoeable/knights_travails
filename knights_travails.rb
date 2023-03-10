@@ -1,28 +1,48 @@
 class GameBoard
-    attr_accessor :board
+    attr_accessor :board, 
 
     def initialize
-        @board = Array.new(8) { Array.new(8, nil) }
+        @board = Array.new(8) { Array.new(8,0) }
+        @knightmove = [[-2, -1], [-1, -2], [1, -2], [2, -1], [2, 1], [1, 2], [-1, 2], [-2, 1]].freeze
     end
 
-end
+    def knight_moves(start, target)
+        queue = [[start]]
+        visited = [start]
 
-class Knight
-    attr_accessor :children, :parent, :position
+        until queue.empty?
+            path = queue.shift
+            last_pos = path.last
 
-    KNIGHTMOVE = [[1, 2], [-2, -1], [-1, 2], [2, -1], [1, -2], [-2, 1], [-1, -2], [2, 1]].freeze
+            return path if last_pos == target
 
+            possible_moves(last_pos).each do |move|
+                next if visited.include?(move)
 
-    def initialize(pos, parent = nil)
-        @pos = pos
-        @parent = parent
-        @children = []
-    end
-
-    def reposition
-        knight_reposition = KNIGHTMOVE.map do |move|
-            move.each_with_index.map { |j, i| j + @pos[i] unless (j + @pos[i]).negative? || (j + @pos[i]) > 7 }
+                visited << move
+                new_path = path + [move]
+                queue << new_path
+            end
         end
-        knight_reposition.delete_if { |move| move.include?(nil) }
+    end
+
+    def possible_moves(pos)
+        row, col = pos 
+        moves = []
+
+        @knightmove.each do |move|
+            new_pos = [row + move[0], col + move[1]]
+
+            if new_pos.all? { |n| n.between?(0, 7)}
+                moves << new_pos
+            end
+        end
+        moves
     end
 end
+
+k_moves = GameBoard.new
+start = [3, 3]
+target = [3, 4]
+path = k_moves.knight_moves(start, target)
+puts "Shortest path from #{start} to #{target} is #{path.inspect}"
